@@ -1,6 +1,7 @@
 CREATE DATABASE vehiculosdb;
 
 -- Conectarse a la base de datos vehiculosdb
+\c vehiculosdb
 
 CREATE TABLE vehiculos (
     id SERIAL PRIMARY KEY,
@@ -14,3 +15,18 @@ CREATE TABLE vehiculos (
     cantidad INTEGER NOT NULL,
     descripcion TEXT
 );
+
+-- ============================================================
+-- MÓDULO DE AUTENTICACIÓN DE USUARIOS
+-- ============================================================
+
+CREATE TABLE usuarios (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    correo VARCHAR(150) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    fecha_registro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Índice para acelerar la búsqueda por correo en el login
+CREATE INDEX idx_usuarios_correo ON usuarios (correo);

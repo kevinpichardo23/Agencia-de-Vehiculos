@@ -1,15 +1,24 @@
 const express = require("express");
 const cors = require("cors");
 const pool = require("./db");
+const { router: authRouter, verificarToken } = require("./auth");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-/* Crear */
+/* ============================================================
+   RUTAS DE AUTENTICACIÓN
+   POST /api/auth/registro
+   POST /api/auth/login
+   ============================================================ */
+app.use("/api/auth", authRouter);
 
-app.post("/vehiculos", async (req, res) => {
+/* Crear
+   Protegido: solo usuarios autenticados (no invitados) pueden registrar. */
+
+app.post("/vehiculos", verificarToken, async (req, res) => {
 
     const {
         codigo,
@@ -44,8 +53,9 @@ app.post("/vehiculos", async (req, res) => {
 
     res.json(nuevo.rows[0]);
 });
-/* Actualizar */
-app.put("/vehiculos/:id", async (req, res) => {
+/* Actualizar
+   Protegido: solo usuarios autenticados (no invitados) pueden editar. */
+app.put("/vehiculos/:id", verificarToken, async (req, res) => {
 
     try {
 
@@ -112,9 +122,10 @@ app.get("/vehiculos", async (req, res) => {
     res.json(resultado.rows);
 });
 
-/* Eliminar */
+/* Eliminar
+   Protegido: solo usuarios autenticados (no invitados) pueden eliminar. */
 
-app.delete("/vehiculos/:id", async (req, res) => {
+app.delete("/vehiculos/:id", verificarToken, async (req, res) => {
 
     const { id } = req.params;
 

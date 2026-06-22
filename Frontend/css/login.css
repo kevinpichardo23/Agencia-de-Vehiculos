@@ -1,0 +1,352 @@
+/* ============================================================
+   AUTOMAX — PANTALLA DE ACCESO
+   Extiende la identidad visual del dashboard (azul pizarra +
+   acento naranja-rojo automotriz). Reutiliza variables de
+   style.css; este archivo se carga después de él.
+   ============================================================ */
+
+body.auth-body {
+  min-height: 100vh;
+  display: flex;
+  background: var(--bg);
+  overflow-x: hidden;
+}
+
+/* ============================================================
+   LIENZO — capas de fondo (asfalto + líneas de carril)
+   ============================================================ */
+.auth-shell {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* ---- PANEL IZQUIERDO: "TABLERO DE BIENVENIDA" ---- */
+.auth-dash {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 3rem 3.2rem;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(232,68,10,.16), transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(59,130,246,.12), transparent 50%),
+    linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
+  border-right: 1px solid rgba(255,255,255,.06);
+  overflow: hidden;
+}
+
+/* Líneas de carril decorativas (asfalto) */
+.auth-dash::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    100deg,
+    transparent 0px,
+    transparent 86px,
+    rgba(255,255,255,.035) 86px,
+    rgba(255,255,255,.035) 90px
+  );
+  pointer-events: none;
+}
+
+.auth-dash__brand {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  position: relative;
+  z-index: 2;
+}
+
+.auth-dash__icon { width: 46px; height: 28px; flex-shrink: 0; }
+
+.auth-dash__name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  color: var(--white);
+  line-height: 1;
+}
+
+.auth-dash__sub {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---- Aguja / Dial central: la "llave de encendido" ---- */
+.auth-dash__hero {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.auth-dash__eyebrow {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--acc);
+}
+
+.auth-dash__title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 50px;
+  font-weight: 800;
+  line-height: 1.04;
+  color: var(--white);
+  letter-spacing: -.01em;
+  max-width: 460px;
+}
+
+.auth-dash__title em {
+  font-style: normal;
+  color: var(--acc);
+}
+
+.auth-dash__copy {
+  font-size: .95rem;
+  color: var(--text2);
+  max-width: 400px;
+  line-height: 1.65;
+}
+
+/* ---- Tira de estado tipo "tablero" ---- */
+.auth-dash__gauges {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 1.2rem;
+}
+
+.gauge {
+  flex: 1;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  padding: .9rem 1rem;
+}
+
+.gauge__n {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--acc);
+  line-height: 1;
+}
+
+.gauge__l {
+  font-size: 10.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 4px;
+  display: block;
+}
+
+.auth-dash__foot {
+  position: relative;
+  z-index: 2;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ============================================================
+   PANEL DERECHO: FORMULARIOS
+   ============================================================ */
+.auth-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem;
+  background: var(--bg);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-card__head { margin-bottom: 1.8rem; }
+
+.auth-card__eyebrow {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin-bottom: .5rem;
+  display: block;
+}
+
+.auth-card__title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -.01em;
+}
+
+/* ---- Tabs Login / Registro ---- */
+.auth-tabs {
+  display: flex;
+  gap: .4rem;
+  margin-bottom: 1.6rem;
+  background: var(--bg2);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: .55rem 0;
+  text-align: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text2);
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background var(--trans), color var(--trans);
+}
+
+.auth-tab--active {
+  background: var(--acc);
+  color: #fff;
+}
+
+/* ---- Formularios ---- */
+.auth-form { display: flex; flex-direction: column; gap: 1.1rem; }
+.auth-form--hidden { display: none; }
+
+.afield { display: flex; flex-direction: column; gap: 5px; }
+
+.afield__label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+
+.afield__input {
+  padding: .72rem .95rem;
+  background: var(--bg3);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: var(--radius);
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
+  font-size: .92rem;
+  transition: border-color var(--trans), box-shadow var(--trans);
+}
+
+.afield__input:focus {
+  outline: none;
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px var(--acc-glow);
+}
+
+.afield__input::placeholder { color: var(--muted); font-size: .85rem; }
+
+.afield__input--invalid {
+  border-color: var(--danger) !important;
+  box-shadow: 0 0 0 3px rgba(239,68,68,.12) !important;
+}
+
+.afield__err {
+  font-size: 11px;
+  color: var(--danger);
+  min-height: 14px;
+}
+
+.auth-form__msg {
+  font-size: 13px;
+  border-radius: var(--radius);
+  padding: .65rem .85rem;
+  display: none;
+}
+
+.auth-form__msg--show { display: block; }
+.auth-form__msg--error   { background: rgba(239,68,68,.12); color: #FCA5A5; border: 1px solid rgba(239,68,68,.25); }
+.auth-form__msg--success { background: rgba(34,197,94,.12); color: #86EFAC; border: 1px solid rgba(34,197,94,.25); }
+
+.auth-form__actions { display: flex; flex-direction: column; gap: .8rem; margin-top: .3rem; }
+
+.btn-gold--full { width: 100%; justify-content: center; }
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  margin: .4rem 0;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.auth-divider::before, .auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,.08);
+}
+
+.btn-guest {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .68rem 1.2rem;
+  background: transparent;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: .875rem;
+  font-weight: 600;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--trans), border-color var(--trans);
+}
+
+.btn-guest:hover {
+  background: var(--bg3);
+  border-color: var(--blue);
+  color: var(--white);
+}
+
+.btn-gold[disabled], .btn-guest[disabled] {
+  opacity: .6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 920px) {
+  .auth-shell { grid-template-columns: 1fr; }
+  .auth-dash { display: none; }
+  .auth-panel { padding: 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}

@@ -1,6 +1,35 @@
 "use strict";
 const API = "http://localhost:3000/vehiculos";
 
+/* ============================================================
+   GUARD DE AUTENTICACIÓN
+   Si no hay token de sesión ni modo invitado activo, se redirige
+   de inmediato a la pantalla de acceso (login.html).
+   ============================================================ */
+(function protegerAcceso() {
+  const token    = localStorage.getItem("automax_token");
+  const invitado = localStorage.getItem("automax_invitado");
+
+  if (!token && !invitado) {
+    window.location.href = "login.html";
+  }
+})();
+
+/* ============================================================
+   ESTADO DE SESIÓN
+   El modo invitado solo puede consultar (GET); no puede crear,
+   editar ni eliminar vehículos. Esas acciones requieren el token
+   JWT de una cuenta registrada.
+   ============================================================ */
+const esInvitado = !!localStorage.getItem("automax_invitado");
+
+function authHeaders(extra = {}) {
+  const token = localStorage.getItem("automax_token");
+  return token
+    ? { ...extra, "Authorization": `Bearer ${token}` }
+    : extra;
+}
+
 const D = {
   form:         document.getElementById("vehiculoForm"),
   modoEdicion:  document.getElementById("modoEdicion"),
@@ -25,6 +54,9 @@ const D = {
   btnConfirmar: document.getElementById("btnConfirmarModal"),
   btnCancelar:  document.getElementById("btnCancelarModal"),
   toastStack:   document.getElementById("toastStack"),
+  sessionNombre: document.getElementById("sessionNombre"),
+  sessionTag:    document.getElementById("sessionTag"),
+  btnLogout:     document.getElementById("btnLogout"),
 };
 
 const inputs = {
@@ -62,7 +94,7 @@ const db = {
   async agregar(v) {
     const res = await fetch(API, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(v)
     });
     return res.ok;
@@ -74,7 +106,7 @@ const db = {
     if (!reg) return false;
     const res = await fetch(`${API}/${reg.id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(v)
     });
     return res.ok;
@@ -84,7 +116,10 @@ const db = {
     const todos = await this.obtener();
     const reg   = todos.find(x => x.codigo === cod);
     if (!reg) return false;
-    const res = await fetch(`${API}/${reg.id}`, { method: "DELETE" });
+    const res = await fetch(`${API}/${reg.id}`, {
+      method: "DELETE",
+      headers: authHeaders()
+    });
     return res.ok;
   },
 
@@ -501,8 +536,11 @@ async function renderFleet(filtro = "") {
         </div>
       </div>
       <div class="fcard__footer">
-        <button class="btn-action btn-action--edit" data-action="edit" data-cod="${esc(v.codigo)}">Editar</button>
-        <button class="btn-action btn-action--delete" data-action="delete" data-cod="${esc(v.codigo)}">Eliminar</button>
+        ${esInvitado
+          ? `<span class="fcard__readonly">Modo invitado: solo lectura</span>`
+          : `<button class="btn-action btn-action--edit" data-action="edit" data-cod="${esc(v.codigo)}">Editar</button>
+             <button class="btn-action btn-action--delete" data-action="delete" data-cod="${esc(v.codigo)}">Eliminar</button>`
+        }
       </div>
     `;
     D.fleetGrid.appendChild(card);
@@ -515,6 +553,7 @@ async function renderFleet(filtro = "") {
 D.fleetGrid.addEventListener("click", async e => {
   const btn = e.target.closest("[data-action]");
   if (!btn) return;
+  if (esInvitado) { toast("Los invitados no pueden modificar el inventario.", "error"); return; }
   const cod = btn.dataset.cod;
   if (btn.dataset.action === "edit")   await cargarParaEditar(cod);
   if (btn.dataset.action === "delete") abrirModal(cod);
@@ -596,6 +635,13 @@ async function validar() {
    ============================================================ */
 D.form.addEventListener("submit", async e => {
   e.preventDefault();
+
+  if (esInvitado) {
+    toast("Los invitados no pueden registrar vehículos.", "error");
+    switchView("inventario");
+    return;
+  }
+
   const veh = await validar();
   if (!veh) { toast("Revisa los campos marcados.", "error"); return; }
 
@@ -693,9 +739,64 @@ function toast(msg, tipo = "success") {
 }
 
 /* ============================================================
+   SESIÓN DE USUARIO
+   ============================================================ */
+function pintarSesion() {
+  const invitado = localStorage.getItem("automax_invitado");
+  const usuarioRaw = localStorage.getItem("automax_usuario");
+
+  if (invitado) {
+    D.sessionNombre.textContent = "Invitado";
+    D.sessionTag.textContent = "Sesión de invitado";
+    return;
+  }
+
+  if (usuarioRaw) {
+    try {
+      const usuario = JSON.parse(usuarioRaw);
+      D.sessionNombre.textContent = usuario.nombre || usuario.correo || "Usuario";
+      D.sessionTag.textContent = "Sesión activa";
+    } catch {
+      D.sessionNombre.textContent = "Usuario";
+      D.sessionTag.textContent = "Sesión activa";
+    }
+  }
+}
+
+function cerrarSesion() {
+  localStorage.removeItem("automax_token");
+  localStorage.removeItem("automax_usuario");
+  localStorage.removeItem("automax_invitado");
+  window.location.href = "login.html";
+}
+
+D.btnLogout.addEventListener("click", cerrarSesion);
+
+/* ============================================================
+   RESTRICCIONES DE MODO INVITADO
+   El invitado solo puede consultar el inventario: no puede
+   registrar, editar ni eliminar vehículos.
+   ============================================================ */
+function aplicarRestriccionesInvitado() {
+  if (!esInvitado) return;
+
+  const navRegistrar = document.querySelector('.sidenav__item[data-view="registrar"]');
+  if (navRegistrar) {
+    navRegistrar.disabled = true;
+    navRegistrar.classList.add("sidenav__item--locked");
+    navRegistrar.title = "Crea una cuenta para registrar vehículos.";
+    navRegistrar.addEventListener("click", () => {
+      toast("Crea una cuenta para registrar vehículos.", "error");
+    });
+  }
+}
+
+/* ============================================================
    INIT
    ============================================================ */
 document.addEventListener("DOMContentLoaded", async () => {
+  pintarSesion();
+  aplicarRestriccionesInvitado();
   await renderFleet();
   await actualizarOdometro();
 });
