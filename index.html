@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AutoMax — Sala de Exposición</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css" />
+
+</head>
+<body>
+
+  <!-- ODÓMETRO SUPERIOR -->
+  <div class="odometer" id="odometer">
+    <span class="odometer__label">Valor de Flota</span>
+    <span class="odometer__value" id="odoValor">$0</span>
+    <span class="odometer__sep">·</span>
+    <span class="odometer__label">Modelos</span>
+    <span class="odometer__value" id="odoModelos">0</span>
+    <span class="odometer__sep">·</span>
+    <span class="odometer__label">Unidades</span>
+    <span class="odometer__value" id="odoUnidades">0</span>
+    <div class="odometer__bar" id="odoBar"></div>
+  </div>
+
+  <div class="shell">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar__brand">
+        <!-- Logo car icon - acento naranja-rojo -->
+        <svg class="sidebar__icon" viewBox="0 0 44 26" fill="none">
+          <path d="M4 20 L10 7 L17 4 L27 4 L34 7 L40 20 Z" stroke="#E8440A" stroke-width="1.6" fill="rgba(232,68,10,.1)"/>
+          <circle cx="11" cy="20" r="3.5" stroke="#E8440A" stroke-width="1.5" fill="rgba(232,68,10,.15)"/>
+          <circle cx="33" cy="20" r="3.5" stroke="#E8440A" stroke-width="1.5" fill="rgba(232,68,10,.15)"/>
+          <line x1="14.5" y1="20" x2="29.5" y2="20" stroke="#E8440A" stroke-width="1.3"/>
+          <path d="M17 4 L18.5 13 L25.5 13 L27 4" stroke="#E8440A" stroke-width="1" fill="rgba(232,68,10,.08)"/>
+          <rect x="5" y="16" width="7" height="4" rx="2" fill="#E8440A" fill-opacity=".4"/>
+          <rect x="32" y="16" width="7" height="4" rx="2" fill="#E8440A" fill-opacity=".25"/>
+        </svg>
+        <div>
+          <div class="sidebar__name">AUTOMAX</div>
+          <div class="sidebar__sub">Sala de Exposición</div>
+        </div>
+      </div>
+      <nav class="sidenav">
+        <button class="sidenav__item sidenav__item--active" data-view="inventario">
+          <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="12" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="12" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+          Flota
+        </button>
+        <button class="sidenav__item" data-view="registrar">
+          <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="7" x2="10" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="7" y1="10" x2="13" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span id="sideNavLabel">Registrar</span>
+        </button>
+      </nav>
+      <div class="sidebar__stats">
+        <div class="sstat">
+          <div class="sstat__n" id="sstatTotal">0</div>
+          <div class="sstat__l">modelos</div>
+        </div>
+        <div class="sstat sstat--mid">
+          <div class="sstat__n" id="sstatStock">0</div>
+          <div class="sstat__l">unidades</div>
+        </div>
+        <div class="sstat">
+          <div class="sstat__n" id="sstatMarca">—</div>
+          <div class="sstat__l">top marca</div>
+        </div>
+      </div>
+      <div class="sidebar__footer">
+        <span>© 2026 AutoMax</span>
+        <span style="color:var(--bg4)">·</span>
+        <span>Proyecto Académico</span>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- VISTA: INVENTARIO -->
+      <section class="view view--active" id="view-inventario">
+        <div class="view-head">
+          <div>
+            <div class="view-head__eyebrow">Flota Registrada</div>
+            <h1 class="view-head__title">Inventario <em>Actual</em></h1>
+          </div>
+          <div class="search-wrap">
+            <svg viewBox="0 0 20 20" fill="none" class="search-wrap__icon"><circle cx="8.5" cy="8.5" r="5" stroke="currentColor" stroke-width="1.5"/><line x1="12.5" y1="12.5" x2="17" y2="17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input type="text" id="buscador" class="search-wrap__input" placeholder="Marca, modelo o código…"/>
+          </div>
+        </div>
+        <div class="fleet-grid" id="fleetGrid"></div>
+        <div class="empty" id="emptyState">
+          <svg class="empty__icon" viewBox="0 0 100 60" fill="none">
+            <path d="M12 48 L20 20 L34 15 L66 15 L80 20 L88 48 Z" stroke="#E8440A" stroke-width="1.5" fill="none" opacity=".35"/>
+            <circle cx="26" cy="48" r="7" stroke="#E8440A" stroke-width="1.5" fill="none" opacity=".35"/>
+            <circle cx="74" cy="48" r="7" stroke="#E8440A" stroke-width="1.5" fill="none" opacity=".35"/>
+            <path d="M34 15 L37 30 L63 30 L66 15" stroke="#E8440A" stroke-width="1" fill="none" opacity=".25"/>
+          </svg>
+          <p class="empty__title" id="emptyMsg">El showroom está vacío.</p>
+          <p class="empty__sub">Agrega el primer vehículo usando el panel de registro.</p>
+          <button class="btn-gold" onclick="switchView('registrar')">+ Agregar vehículo</button>
+        </div>
+      </section>
+
+      <!-- VISTA: FORMULARIO -->
+      <section class="view" id="view-registrar">
+        <div class="view-head">
+          <div>
+            <div class="view-head__eyebrow" id="formEyebrow">Nuevo Vehículo</div>
+            <h1 class="view-head__title" id="formTitle">Configurar <em>Registro</em></h1>
+          </div>
+          <button class="btn-ghost" onclick="switchView('inventario')">
+            <svg viewBox="0 0 20 20" fill="none" style="width:16px;height:16px"><path d="M12 4L6 10L12 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Volver a flota
+          </button>
+        </div>
+
+        <form id="vehiculoForm" class="config-form" novalidate>
+          <input type="hidden" id="modoEdicion" value=""/>
+
+          <div class="config-block">
+            <div class="config-block__head">
+              <span class="config-block__num">A</span>
+              <span class="config-block__label">Identidad del vehículo</span>
+            </div>
+            <div class="config-grid config-grid--3">
+              <div class="cfield" id="group-codigo">
+                <label class="cfield__label" for="codigo">Código</label>
+                <input type="text" id="codigo" class="cfield__input" placeholder="Ej. A001" autocomplete="off"/>
+                <span class="cfield__err" id="error-codigo"></span>
+              </div>
+              <div class="cfield" id="group-marca">
+                <label class="cfield__label" for="marca">Marca</label>
+                <select id="marca" class="cfield__input">
+                  <option value="">— Seleccionar —</option>
+                  <option>Toyota</option><option>Honda</option><option>Nissan</option>
+                  <option>Hyundai</option><option>Kia</option><option>Chevrolet</option>
+                  <option>Ford</option><option>BMW</option><option>Mercedes-Benz</option>
+                </select>
+                <span class="cfield__err" id="error-marca"></span>
+              </div>
+              <div class="cfield" id="group-modelo">
+                <label class="cfield__label" for="modelo">Modelo</label>
+                <input type="text" id="modelo" class="cfield__input" placeholder="Ej. Corolla" autocomplete="off"/>
+                <span class="cfield__err" id="error-modelo"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="config-block">
+            <div class="config-block__head">
+              <span class="config-block__num">B</span>
+              <span class="config-block__label">Especificaciones técnicas</span>
+            </div>
+            <div class="config-grid config-grid--4">
+              <div class="cfield" id="group-anio">
+                <label class="cfield__label" for="anio">Año</label>
+                <input type="number" id="anio" class="cfield__input" placeholder="2025"/>
+                <span class="cfield__err" id="error-anio"></span>
+              </div>
+              <div class="cfield" id="group-color">
+                <label class="cfield__label" for="color">Color exterior</label>
+                <input type="text" id="color" class="cfield__input" placeholder="Blanco Perla" autocomplete="off"/>
+                <span class="cfield__err" id="error-color"></span>
+              </div>
+              <div class="cfield" id="group-combustible">
+                <label class="cfield__label" for="combustible">Motorización</label>
+                <select id="combustible" class="cfield__input">
+                  <option value="">— Tipo —</option>
+                  <option>Gasolina</option><option>Diésel</option>
+                  <option>Híbrido</option><option>Eléctrico</option>
+                </select>
+                <span class="cfield__err" id="error-combustible"></span>
+              </div>
+              <div class="cfield cfield--hidden"></div>
+            </div>
+          </div>
+
+          <div class="config-block">
+            <div class="config-block__head">
+              <span class="config-block__num">C</span>
+              <span class="config-block__label">Datos comerciales</span>
+            </div>
+            <div class="config-grid config-grid--3">
+              <div class="cfield" id="group-precio">
+                <label class="cfield__label" for="precio">Precio unitario (USD)</label>
+                <div class="cfield__prefix-wrap">
+                  <span class="cfield__prefix">$</span>
+                  <input type="number" id="precio" class="cfield__input cfield__input--prefix" placeholder="0.00" step="0.01"/>
+                </div>
+                <span class="cfield__err" id="error-precio"></span>
+              </div>
+              <div class="cfield" id="group-cantidad">
+                <label class="cfield__label" for="cantidad">Unidades en stock</label>
+                <input type="number" id="cantidad" class="cfield__input" placeholder="0"/>
+                <span class="cfield__err" id="error-cantidad"></span>
+              </div>
+              <div class="cfield cfield--live">
+                <label class="cfield__label">Valor total de lote</label>
+                <div class="cfield__live-val" id="liveTotal">$0</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="config-block">
+            <div class="config-block__head">
+              <span class="config-block__num">D</span>
+              <span class="config-block__label">Descripción</span>
+            </div>
+            <div class="cfield" id="group-descripcion" style="padding:1.4rem">
+              <textarea id="descripcion" class="cfield__input cfield__textarea" rows="3" placeholder="Características principales: motor, transmisión, equipamiento…"></textarea>
+              <span class="cfield__err" id="error-descripcion"></span>
+            </div>
+          </div>
+
+          <div class="config-actions">
+            <button type="submit" class="btn-gold" id="btnGuardar">+ Registrar vehículo</button>
+            <button type="button" class="btn-ghost" id="btnLimpiar">Limpiar</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-wrap" id="modalWrap">
+    <div class="modal-box">
+      <div class="modal-box__line"></div>
+      <p class="modal-box__title">¿Eliminar unidad?</p>
+      <p class="modal-box__sub">Esta acción no puede revertirse. El vehículo será removido del inventario de forma permanente.</p>
+      <div class="modal-box__actions">
+        <button class="btn-ghost" id="btnCancelarModal">Cancelar</button>
+        <button class="btn-danger" id="btnConfirmarModal">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
