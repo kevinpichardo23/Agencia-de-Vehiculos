@@ -83,6 +83,97 @@ function esc(str) {
 }
 
 /* ============================================================
+   IMAGEN DEL VEHÍCULO
+   La foto se envía y se guarda junto con el resto de los datos del
+   vehículo (columna "foto" en la base de datos, vía la API REST).
+   Así persiste igual que cualquier otro campo: no depende del
+   navegador, del puerto de Live Server ni de localStorage.
+   ============================================================ */
+
+// Estado temporal de la imagen en el formulario
+let _pendingImg = null; // base64 o null
+
+function setupImgUpload() {
+  const zone      = document.getElementById("imgUploadZone");
+  const input     = document.getElementById("fotoInput");
+  const preview   = document.getElementById("imgPreview");
+  const loaded    = document.getElementById("imgLoaded");
+  const thumb     = document.getElementById("imgThumb");
+  const browseBtn = document.getElementById("imgBrowseBtn");
+  const removeBtn = document.getElementById("imgRemoveBtn");
+
+  if (!zone) return;
+
+  browseBtn.addEventListener("click", () => input.click());
+
+  input.addEventListener("change", () => {
+    const file = input.files[0];
+    if (file) processImgFile(file);
+  });
+
+  // Drag & drop
+  zone.addEventListener("dragover", e => { e.preventDefault(); zone.classList.add("img-upload--drag"); });
+  zone.addEventListener("dragleave", () => zone.classList.remove("img-upload--drag"));
+  zone.addEventListener("drop", e => {
+    e.preventDefault();
+    zone.classList.remove("img-upload--drag");
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) processImgFile(file);
+  });
+
+  removeBtn.addEventListener("click", () => {
+    _pendingImg = null;
+    input.value = "";
+    thumb.src = "";
+    preview.style.display = "";
+    loaded.style.display  = "none";
+  });
+
+  function processImgFile(file) {
+    if (file.size > 5 * 1024 * 1024) { toast("La imagen supera los 5 MB.", "error"); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      _pendingImg = e.target.result; // base64 data URL
+      thumb.src  = _pendingImg;
+      preview.style.display = "none";
+      loaded.style.display  = "";
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function setImgPreviewFromFoto(foto) {
+  const preview = document.getElementById("imgPreview");
+  const loaded  = document.getElementById("imgLoaded");
+  const thumb   = document.getElementById("imgThumb");
+  if (!preview) return;
+  if (foto) {
+    _pendingImg   = foto;
+    thumb.src     = foto;
+    preview.style.display = "none";
+    loaded.style.display  = "";
+  } else {
+    _pendingImg = null;
+    if (thumb) thumb.src = "";
+    preview.style.display = "";
+    loaded.style.display  = "none";
+  }
+}
+
+function clearImgUpload() {
+  _pendingImg = null;
+  const input   = document.getElementById("fotoInput");
+  const preview = document.getElementById("imgPreview");
+  const loaded  = document.getElementById("imgLoaded");
+  const thumb   = document.getElementById("imgThumb");
+  if (!preview) return;
+  if (input) input.value = "";
+  if (thumb) thumb.src = "";
+  preview.style.display = "";
+  loaded.style.display  = "none";
+}
+
+/* ============================================================
    BASE DE DATOS (API REST)
    ============================================================ */
 const db = {
@@ -504,13 +595,22 @@ async function renderFleet(filtro = "") {
 
     card.style.setProperty("--card-accent", cardAccent);
 
+    // Imagen guardada en la BD o silueta SVG como fallback
+    const fotoGuardada = v.foto || null;
+    const visualHeader = fotoGuardada
+      ? `<div class="fcard__photo-wrap"><img src="${fotoGuardada}" alt="Foto de ${esc(v.marca)} ${esc(v.modelo)}" class="fcard__photo"/></div>`
+      : getSilueta(v.marca, v.modelo, v.combustible);
+
     card.innerHTML = `
       <div class="fcard__header">
+        ${visualHeader}
+        <div class="fcard__scrim"></div>
+        <span class="fcard__type-badge" style="color:${cardAccent};">${tipoLabel}</span>
         <span class="${badgeClass(v.combustible)}">${esc(v.combustible)}</span>
-        <span style="position:absolute;top:12px;left:12px;font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:600;letter-spacing:.1em;color:${cardAccent};opacity:.7;text-transform:uppercase;">${tipoLabel}</span>
-        ${getSilueta(v.marca, v.modelo, v.combustible)}
-        <div class="fcard__brand">${esc(v.marca)}</div>
-        <div class="fcard__model">${esc(v.modelo)} · ${v.anio}</div>
+        <div class="fcard__info">
+          <div class="fcard__brand">${esc(v.marca)}</div>
+          <div class="fcard__model">${esc(v.modelo)} · ${v.anio}</div>
+        </div>
       </div>
       <div class="fcard__body">
         <div class="fcard__row">
@@ -647,9 +747,22 @@ D.form.addEventListener("submit", async e => {
 
   const orig = D.modoEdicion.value;
   if (orig) {
+    // _pendingImg: base64 → se subió/reemplazó una foto.
+    // _pendingImg null pero el usuario usó "Quitar" → se debe borrar (foto: null).
+    // _pendingImg null y nunca se tocó → no enviar la clave "foto" para que
+    // el backend conserve la imagen ya guardada.
+    const thumbEl = document.getElementById("imgThumb");
+    const imgWasCleared = !_pendingImg && thumbEl && thumbEl.src === "";
+    if (_pendingImg) {
+      veh.foto = _pendingImg;
+    } else if (imgWasCleared) {
+      veh.foto = null;
+    }
+    // else: no se incluye "foto" → el backend mantiene la actual.
     await db.actualizar(orig, veh);
     toast("Vehículo actualizado.");
   } else {
+    if (_pendingImg) veh.foto = _pendingImg;
     await db.agregar(veh);
     toast("Vehículo registrado en flota.");
   }
@@ -674,6 +787,7 @@ function resetForm() {
   D.liveTotal.textContent    = "$0";
   D.liveTotal.style.color    = "var(--muted)";
   clearAll();
+  clearImgUpload();
 }
 
 D.btnLimpiar.addEventListener("click", resetForm);
@@ -694,6 +808,8 @@ async function cargarParaEditar(cod) {
   D.btnGuardar.textContent  = "Guardar cambios";
   D.sideNavLabel.textContent = "Editar";
   calcularLive();
+  // Cargar imagen guardada (viene de la BD junto al resto de los datos)
+  setImgPreviewFromFoto(v.foto || null);
   switchView("registrar");
 }
 
@@ -716,6 +832,7 @@ D.modalWrap.addEventListener("click", e => { if (e.target === D.modalWrap) cerra
 D.btnConfirmar.addEventListener("click", async () => {
   if (!codigoAEliminar) return;
   if (D.modoEdicion.value === codigoAEliminar) resetForm();
+  // La foto vive en la misma fila de la BD: se elimina junto con el vehículo.
   await db.eliminar(codigoAEliminar);
   toast("Vehículo retirado de flota.");
   await renderFleet(D.buscador.value);
@@ -797,6 +914,7 @@ function aplicarRestriccionesInvitado() {
 document.addEventListener("DOMContentLoaded", async () => {
   pintarSesion();
   aplicarRestriccionesInvitado();
+  setupImgUpload();
   await renderFleet();
   await actualizarOdometro();
 });

@@ -6,7 +6,9 @@ const { router: authRouter, verificarToken } = require("./auth");
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+// Límite aumentado: las fotos se envían como base64 (data URL) y pueden
+// pesar varios MB una vez codificadas.
+app.use(express.json({ limit: "10mb" }));
 
 /* ============================================================
    RUTAS DE AUTENTICACIÓN
@@ -29,14 +31,15 @@ app.post("/vehiculos", verificarToken, async (req, res) => {
         combustible,
         precio,
         cantidad,
-        descripcion
+        descripcion,
+        foto
     } = req.body;
 
     const nuevo = await pool.query(
         `INSERT INTO vehiculos
         (codigo,marca,modelo,anio,color,
-        combustible,precio,cantidad,descripcion)
-        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)
+        combustible,precio,cantidad,descripcion,foto)
+        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
         RETURNING *`,
         [
             codigo,
@@ -47,7 +50,8 @@ app.post("/vehiculos", verificarToken, async (req, res) => {
             combustible,
             precio,
             cantidad,
-            descripcion
+            descripcion,
+            foto || null
         ]
     );
 
@@ -70,8 +74,16 @@ app.put("/vehiculos/:id", verificarToken, async (req, res) => {
             combustible,
             precio,
             cantidad,
-            descripcion
+            descripcion,
+            foto
         } = req.body;
+
+        // Si el cliente no envía la clave "foto" en el body, se conserva la
+        // imagen ya guardada (COALESCE con la foto actual en la BD).
+        // Si envía "foto": null explícito, se borra la imagen.
+        // Si envía un string (data URL), se reemplaza.
+        const fotoParam = foto === undefined ? null : foto;
+        const mantenerFotoActual = foto === undefined;
 
         const resultado = await pool.query(
             `UPDATE vehiculos
@@ -83,8 +95,9 @@ app.put("/vehiculos/:id", verificarToken, async (req, res) => {
                  combustible=$6,
                  precio=$7,
                  cantidad=$8,
-                 descripcion=$9
-             WHERE id=$10
+                 descripcion=$9,
+                 foto=CASE WHEN $11 THEN foto ELSE $10 END
+             WHERE id=$12
              RETURNING *`,
             [
                 codigo,
@@ -96,6 +109,8 @@ app.put("/vehiculos/:id", verificarToken, async (req, res) => {
                 precio,
                 cantidad,
                 descripcion,
+                fotoParam,
+                mantenerFotoActual,
                 id
             ]
         );

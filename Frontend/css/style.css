@@ -416,39 +416,88 @@ body {
   box-shadow: 0 12px 32px rgba(0,0,0,.35);
 }
 
-/* Header de la tarjeta */
+/* Header de la tarjeta — la foto choca directo contra el borde superior;
+   el resto de elementos (badges, marca, modelo) flotan sobrepuestos encima */
 .fcard__header {
   background: var(--bg3);
-  padding: 1.3rem 1.4rem 0.9rem;
+  padding: 0;
   position: relative;
+  overflow: hidden;
   border-bottom: 1px solid rgba(255,255,255,.06);
-  /* línea de acento superior */
+  /* línea de acento superior — es lo único que queda antes de la foto */
   border-top: 3px solid var(--card-accent, var(--acc));
+}
+
+/* Velo degradado sobre la parte superior de la foto/silueta para que
+   las etiquetas y el texto resalten y se lean bien encima de cualquier imagen */
+.fcard__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg,
+    rgba(8,11,22,.88) 0%,
+    rgba(8,11,22,.58) 32%,
+    rgba(8,11,22,.12) 62%,
+    rgba(8,11,22,0) 85%);
+  pointer-events: none;
 }
 
 .fcard__badge {
   position: absolute;
   top: 12px; right: 12px;
+  z-index: 2;
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: .1em;
-  padding: 3px 9px;
-  border-radius: 4px;
+  padding: 4px 10px;
+  border-radius: 5px;
   text-transform: uppercase;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 3px 10px rgba(0,0,0,.4);
 }
 
-.fcard__badge--gasolina  { background: rgba(245,158,11,.12); color: var(--amber);  border: 1px solid rgba(245,158,11,.25); }
-.fcard__badge--diesel    { background: rgba(16,185,129,.1);  color: var(--teal);   border: 1px solid rgba(16,185,129,.25); }
-.fcard__badge--hibrido   { background: rgba(59,130,246,.1);  color: var(--blue);   border: 1px solid rgba(59,130,246,.25); }
-.fcard__badge--electrico { background: rgba(139,92,246,.1);  color: var(--purple); border: 1px solid rgba(139,92,246,.25); }
+.fcard__badge--gasolina  { background: rgba(245,158,11,.22); color: var(--amber);  border: 1px solid rgba(245,158,11,.5); }
+.fcard__badge--diesel    { background: rgba(16,185,129,.2);  color: var(--teal);   border: 1px solid rgba(16,185,129,.5); }
+.fcard__badge--hibrido   { background: rgba(59,130,246,.2);  color: var(--blue);   border: 1px solid rgba(59,130,246,.5); }
+.fcard__badge--electrico { background: rgba(139,92,246,.2);  color: var(--purple); border: 1px solid rgba(139,92,246,.5); }
 
-/* Silueta del auto */
+/* Etiqueta del tipo de vehículo (antes inline, ahora con su propia clase
+   para que combine visualmente con el resto de badges sobrepuestos) */
+.fcard__type-badge {
+  position: absolute;
+  top: 12px; left: 12px;
+  z-index: 2;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  padding: 4px 9px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  background: rgba(8,11,22,.55);
+  border: 1px solid rgba(255,255,255,.18);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 3px 10px rgba(0,0,0,.35);
+}
+
+/* Silueta del auto — ahora ocupa el mismo alto "hero" que la foto */
 .fcard__silhouette {
   display: block;
   width: 100%;
-  height: 80px;
-  margin: 0.5rem 0 0.3rem;
+  height: 152px;
+  margin: 0;
+  background: var(--bg3);
+}
+
+/* Bloque marca + modelo, sobrepuesto en la parte superior de la foto,
+   justo debajo de la fila de badges */
+.fcard__info {
+  position: absolute;
+  z-index: 2;
+  top: 42px; left: 14px; right: 14px;
 }
 
 .fcard__brand {
@@ -458,13 +507,15 @@ body {
   color: var(--white);
   letter-spacing: .03em;
   line-height: 1;
+  text-shadow: 0 2px 8px rgba(0,0,0,.65), 0 1px 2px rgba(0,0,0,.85);
 }
 
 .fcard__model {
   font-size: 12px;
-  color: var(--text2);
+  color: var(--text);
   letter-spacing: .04em;
   margin-top: 3px;
+  text-shadow: 0 1px 6px rgba(0,0,0,.75);
 }
 
 /* Body de la tarjeta */
@@ -575,6 +626,141 @@ body {
   border-radius: 50%;
   background: var(--muted);
   flex-shrink: 0;
+}
+
+/* ============================================================
+   FOTO EN TARJETA
+   ============================================================ */
+/* Busca esta sección en tu CSS y reemplázala por los siguientes valores */
+/* Wrapper que fija el área de imagen y recorta lo que sobra */
+.fcard__photo-wrap {
+  width: 100%;
+  margin: 0;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: rgba(0,0,0,.25);  /* fondo si la imagen tarda en cargar              */
+  flex-shrink: 0;
+}
+
+.fcard__photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;            /* rellena el wrapper sin distorsionar               */
+  object-position: center 40%;  /* centra ligeramente arriba → muestra la carrocería */
+  transition: transform .35s ease;
+}
+
+.fcard:hover .fcard__photo {
+  transform: scale(1.04);       /* zoom sutil al hacer hover sobre la tarjeta        */
+}
+
+/* ============================================================
+   BLOQUE IMAGEN UPLOAD (formulario)
+   ============================================================ */
+.config-block__optional {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--muted);
+  letter-spacing: .05em;
+  text-transform: none;
+}
+
+.img-upload {
+  border: 1.5px dashed rgba(255,255,255,.15);
+  border-radius: 10px;
+  background: rgba(255,255,255,.02);
+  transition: border-color .2s, background .2s;
+  overflow: hidden;
+}
+
+.img-upload:hover {
+  border-color: rgba(232,68,10,.4);
+  background: rgba(232,68,10,.03);
+}
+
+.img-upload--drag {
+  border-color: var(--acc) !important;
+  background: rgba(232,68,10,.06) !important;
+}
+
+.img-upload__preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  gap: .6rem;
+  text-align: center;
+}
+
+.img-upload__icon {
+  width: 52px;
+  height: 42px;
+  color: var(--muted);
+  margin-bottom: .3rem;
+}
+
+.img-upload__hint {
+  font-size: 12.5px;
+  color: var(--text2);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.img-upload__hint--sub {
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.img-upload__browse {
+  background: none;
+  border: none;
+  color: var(--acc);
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.img-upload__browse:hover { opacity: .8; }
+
+.img-upload__loaded {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .8rem;
+  padding: 1.2rem 1.5rem;
+}
+
+.img-upload__thumb {
+  width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(0,0,0,.2);
+}
+
+.img-upload__remove {
+  background: rgba(239,68,68,.08);
+  border: 1px solid rgba(239,68,68,.2);
+  border-radius: 6px;
+  color: var(--danger);
+  font-size: 11.5px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  padding: .35rem .9rem;
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+}
+
+.img-upload__remove:hover {
+  background: rgba(239,68,68,.18);
+  border-color: rgba(239,68,68,.4);
 }
 
 /* ============================================================

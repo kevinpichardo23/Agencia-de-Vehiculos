@@ -13,8 +13,12 @@ CREATE TABLE vehiculos (
     combustible VARCHAR(30) NOT NULL,
     precio DECIMAL(12,2) NOT NULL,
     cantidad INTEGER NOT NULL,
-    descripcion TEXT
+    descripcion TEXT,
+    foto TEXT
 );
+
+-- Si la tabla ya existía sin la columna "foto", ejecutar:
+-- ALTER TABLE vehiculos ADD COLUMN IF NOT EXISTS foto TEXT;
 
 -- ============================================================
 -- MÓDULO DE AUTENTICACIÓN DE USUARIOS
